@@ -1,0 +1,186 @@
+/* General Container */
+.container {
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 20px;
+  background: #f9f9f9;  /* Light background */
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  font-family: "Arial", sans-serif;
+}
+
+/* Heading */
+h2 {
+  color: #444;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Form Container */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Input Fields */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  transition: border-color 0.3s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #66afe9;
+  outline: none;
+}
+
+/* Multi-Select Dropdown */
+.user {
+  font-size: 15px;
+}
+
+/* Date & Time Picker */
+.date-time-row {
+  display: flex;
+  gap: 8px;
+}
+
+.picker {
+  flex: 1;
+  padding: 10px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px;
+  font-size: 15px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-primary {
+  background: #66afe9;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #57a0d3;
+}
+
+.btn-success {
+  background: #33c73d;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #78b143;
+}
+
+.btn-danger {
+  background: #e57373;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #d66363;
+}
+
+/* Meeting Details */
+.meeting-details {
+  text-align: left;
+  margin-top: 20px;
+}
+
+.meeting-details p {
+  font-size: 15px;
+  margin: 5px 0;
+}
+
+.meeting-id {
+  font-weight: bold;
+  color: #66afe9;
+  word-wrap: break-word;
+}
+
+/* Error Message */
+.error-text {
+  color: #d9534f;
+  font-size: 14px;
+  text-align: center;
+  margin-top: 5px;
+}
+.compulsory-checkbox {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  padding-left: 30px;
+  user-select: none;
+  color: #333;
+}
+
+/* Hide the default checkbox */
+.compulsory-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Custom checkmark */
+.compulsory-checkbox .checkmark {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  background-color: #ddd;
+  border-radius: 4px;
+  transition: 0.3s;
+}
+
+/* When checkbox is checked */
+.compulsory-checkbox input:checked + .checkmark {
+  background-color: red;
+  border: 2px solid darkred;
+}
+
+/* Checkmark inside the box */
+.compulsory-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+/* Show checkmark when checked */
+.compulsory-checkbox input:checked + .checkmark:after {
+  display: block;
+}
+
+/* Checkmark style */
+.compulsory-checkbox .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}

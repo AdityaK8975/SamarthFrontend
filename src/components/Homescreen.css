@@ -1,0 +1,96 @@
+/* General Page Styling */
+.home-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f4f4f4;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 250px;
+  background-color: #2c3e50;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Sidebar Buttons */
+.sidebar .btn {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: white;
+  text-align: center;
+  border-radius: 5px;
+}
+
+.sidebar .btn-outline {
+  background-color: transparent;
+  border: 2px solid #3498db;
+  color: #3498db;
+}
+
+.sidebar .btn-outline:hover {
+  background-color: #3498db;
+  color: white;
+}
+
+.sidebar .btn-primary {
+  background-color: #3498db;
+}
+
+.sidebar .btn-primary:hover {
+  background-color: #2980b9;
+}
+
+.sidebar .btn-success {
+  background-color: #27ae60;
+}
+
+.sidebar .btn-success:hover {
+  background-color: #219150;
+}
+
+/* Main Content */
+.main-content {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Section Title */
+.section-title {
+  font-size: 24px;
+  color: #2c3e50;
+  margin-bottom: 15px;
+}
+
+/* Meetings Grid */
+.meetings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Meeting Card */
+.meeting-item {
+  background-color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+}
+
+.meeting-item.canceled {
+  opacity: 0.6;
+  text-decoration: line-through;
+}
+
+.meeting-item:hover {
+  transform: translateY(-5px);
+}

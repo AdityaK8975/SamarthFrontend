@@ -1,0 +1,179 @@
+/* Meeting Card Container */
+.meeting-card {
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  min-height:450px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Hover Effect */
+.meeting-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Meeting Header */
+.meeting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.meeting-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.meeting-type {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fdfdfd;
+}
+
+/* Meeting Details */
+.meeting-details {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.4;
+  padding: 5px 0;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+/* Button Styles */
+.btn {
+  padding: 8px 12px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn-accept {
+  background: #28a745;
+  color: white;
+  border: none;
+}
+
+.btn-accept:hover {
+  background: #1e7e34;
+}
+
+.btn-reject {
+  background: #dc3545;
+  color: white;
+  border: none;
+}
+
+.btn-reject:hover {
+  background: #c82333;
+}
+
+.btn-join {
+  background: #007bff;
+  color: white;
+  border: none;
+  width: 100%;
+  text-align: center;
+}
+
+.btn-join:hover {
+  background: #0056b3;
+}
+
+/* Rejected Text */
+.rejected-text {
+  font-size: 14px;
+  color: #dc3545;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+/* Reason Input */
+.reason-input {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.reason-input textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  resize: none;
+}
+
+.btn-submit-reason {
+  margin-top: 8px;
+  background: #ff9800;
+  color: white;
+  border: none;
+}
+
+.btn-submit-reason:hover {
+  background: #e68900;
+}
+
+/* Host Response List */
+.host-rejection-list {
+  margin-top: 10px;
+}
+
+.host-rejection-list h4 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.host-rejection-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.host-rejection-list li {
+  font-size: 14px;
+  color: #333;
+  padding: 4px 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .meeting-card {
+    padding: 10px;
+  }
+
+  .meeting-title {
+    font-size: 16px;
+  }
+
+  .meeting-type {
+    font-size: 12px;
+  }
+
+  .meeting-details {
+    font-size: 13px;
+  }
+
+  .btn {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+}
