@@ -9,7 +9,7 @@ import CreateMeeting from "./components/CreateMeeting";
 import HomeScreen from "./components/HomeScreen";
 import AllMeetings from "./components/AllMeeting";
 import Home2 from './components/Home'
-import UserDashbord from "./components/userDashbord";
+import UserDashbord from "./components/UserDashbord";
 function App() {
  
   return (
