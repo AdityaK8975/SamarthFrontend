@@ -26,7 +26,7 @@ const HostMeetingScreenDetails = ({ meeting }) => {
       <div className="meeting-details">
         <p><strong>Meeting ID:</strong> {meeting.meetingId}</p>
         <p><strong>Date:</strong> {new Date(meeting.date).toDateString()}</p>
-        <p><strong>Time:</strong> {meeting.time}</p>
+        <p><strong>Time:</strong> {meeting.timeFrom} - {meeting.timeTo}</p>
         {meeting.meetingLink && (
           <p><strong>Meeting Link:</strong> <a href={meeting.meetingLink} target="_blank" rel="noopener noreferrer">{meeting.meetingLink}</a></p>
         )}

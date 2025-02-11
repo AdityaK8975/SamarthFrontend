@@ -76,7 +76,7 @@ const MeetingCard = ({ meeting, isHost, userId }) => {
 
       <div className="meeting-details" >
         <p>📅 {new Date(meeting.date).toDateString()}</p>
-        <p>⏰ {meeting.time}</p>
+        <p>⏰ {meeting.timeFrom}-⏰ {meeting.timeTo}</p>
       </div>
       <div className="meeting-details">
         <p> <strong>Description </strong> - {meeting.description}</p>

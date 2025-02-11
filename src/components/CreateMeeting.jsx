@@ -16,7 +16,8 @@ const CreateMeeting = () => {
   const [meetingTitle, setMeetingTitle] = useState("");
   const [description, setDescription] = useState("");
   const [meetingDate, setMeetingDate] = useState(new Date());
-  const [meetingTime, setMeetingTime] = useState(new Date());
+  const [meetingTimeFrom, setMeetingTimeFrom] = useState(new Date());
+  const [meetingTimeTo, setMeetingTimeTo] = useState(new Date());
   const [meetingId, setMeetingId] = useState("");
   const [isCreated, setIsCreated] = useState(false);
   const [error, setError] = useState(null);
@@ -105,7 +106,12 @@ const CreateMeeting = () => {
         title: meetingTitle,
         description: description || "",
         date: meetingDate.toISOString().split("T")[0], // YYYY-MM-DD format
-        time: meetingTime.toLocaleTimeString([], {
+        timeFrom: meetingTimeFrom.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        }),
+        timeTo: meetingTimeTo.toLocaleTimeString([], {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
@@ -239,8 +245,18 @@ const CreateMeeting = () => {
               minDate={new Date()} 
             />
             <DatePicker
-              selected={meetingTime}
-              onChange={(time) => setMeetingTime(time)}
+              selected={meetingTimeFrom}
+              onChange={(time) => setMeetingTimeFrom(time)}
+              showTimeSelect
+              showTimeSelectOnly
+              timeIntervals={15}
+              timeFormat="h:mm aa"
+              dateFormat="h:mm aa"
+              className="picker"
+            />
+             <DatePicker
+              selected={meetingTimeTo}
+              onChange={(time) => setMeetingTimeTo(time)}
               showTimeSelect
               showTimeSelectOnly
               timeIntervals={15}
@@ -269,7 +285,13 @@ const CreateMeeting = () => {
           </p>
           <p>
             <strong>Time:</strong>{" "}
-            {meetingTime.toLocaleTimeString([], {
+            {meetingTimeFrom.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })}
+            -
+            {meetingTimeTo.toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
               hour12: true,
