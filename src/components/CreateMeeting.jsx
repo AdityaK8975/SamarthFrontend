@@ -325,9 +325,12 @@ const CreateMeeting = () => {
             <span className="meeting-id">{meetingId}</span>
           </p>
           <p>
-          <strong>Meeting Link:</strong>{" "}
-            <span className="meeting-id">`http://localhost:5173/video-call?roomId=${meetingId}`</span>
-          </p>
+  <strong>Meeting Link:</strong>{" "}
+  <span className="meeting-id">
+    `http://localhost:5173/video-call?roomId=${meetingId}`
+  </span>
+</p>
+
         </div>
       )}
 {isCreated && (
