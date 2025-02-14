@@ -166,18 +166,14 @@ function VideoCall() {
       alert("Invalid Room ID");
       return;
     }
-    const getUidFromURL = () => {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("uid"); // Get 'uid' from the URL
-    };
-    const getChannelNameFromURL = () => {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("roomId"); // Extract 'roomId' from URL
-    };
+
+  const getUidFromURL = () => new URLSearchParams(window.location.search).get("uid") || Math.floor(Math.random() * 10000);
+const getChannelNameFromURL = () => new URLSearchParams(window.location.search).get("roomId") || "default-channel";
+
     const joinMeeting = async () => {
       try {
         const uid = getUidFromURL();
-        const channelName = getChannelNameFromURL();
+        const roomId = getChannelNameFromURL();
         if (!uid) {
           console.error("Error: UID not found in URL");
           return;
@@ -192,12 +188,23 @@ function VideoCall() {
         }
     
         
-        const response = await fetch(`http://localhost:5000/token?channel=${channelName}&uid=${uid}`);
+       const response = await fetch("http://localhost:5000/token", {
+  method: "POST", // ✅ Use POST instead of GET
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    roomId: roomId, // Make sure channelName is correctly assigned
+    uid: uid, // Ensure uid is not undefined
+  }),
+});
         const tokenData = await response.json();
+        console.log("Token Data Received:", tokenData); // Debugging
+
         if (!tokenData.token) throw new Error("Token generation failed");
        
 
-        await client.join(APP_ID, tokenData.channel,tokenData.token, tokenData.uid);
+        await client.join(APP_ID, tokenData.roomId,tokenData.token, tokenData.uid);
     
         const tracks = await AgoraRTC.createMicrophoneAndCameraTracks();
         setLocalTracks(tracks);

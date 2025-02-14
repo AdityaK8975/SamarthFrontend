@@ -19,7 +19,7 @@ const MeetingCard = ({ meeting, isHost, userId }) => {
   // };
   const updateMeetingResponse = async (meetingId, userId, responseStatus, reason = null) => {
     try {
-      const res = await fetch("https://samarthmeet.onrender.com/update-response", {
+      const res = await fetch("http://localhost:5000/update-response", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ meetingId, userId, status: responseStatus, reasonForRejection: reason }),
