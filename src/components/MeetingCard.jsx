@@ -10,7 +10,7 @@ const MeetingCard = ({ meeting, isHost, userId }) => {
 
   // const fetchUpdatedMeeting = async () => {
   //   try {
-  //     const response = await fetch(`http://localhost:5000/meeting/${meeting.meetingId}`);
+  //     const response = await fetch(`https://samarthmeet.onrender.com/meeting/${meeting.meetingId}`);
   //     const updatedMeeting = await response.json();
   //     setMeeting(updatedMeeting); // Update state with new data
   //   } catch (error) {
@@ -19,7 +19,7 @@ const MeetingCard = ({ meeting, isHost, userId }) => {
   // };
   const updateMeetingResponse = async (meetingId, userId, responseStatus, reason = null) => {
     try {
-      const res = await fetch("http://localhost:5000/update-response", {
+      const res = await fetch("https://samarthmeet.onrender.com/update-response", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ meetingId, userId, status: responseStatus, reasonForRejection: reason }),

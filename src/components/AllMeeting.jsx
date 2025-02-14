@@ -16,7 +16,7 @@ const AllMeetings = () => {
   // ✅ Move fetchMeetings outside of useEffect
   const fetchMeetings = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/host/${hostId}`);
+      const response = await axios.get(`https://samarthmeet.onrender.com/host/${hostId}`);
       const sortedMeetings = response.data.sort((a, b) => new Date(b.date) - new Date(a.date));
 
       setMeetings(sortedMeetings);

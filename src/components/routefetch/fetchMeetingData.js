@@ -2,7 +2,7 @@ import axios from 'axios';
 
 export const fetchMeetingsByUserId = async (userId) => {
     try {
-        const response = await axios.get(`http://localhost:5000/api/meetings/data?userId=${userId}`);
+        const response = await axios.get(`https://samarthmeet.onrender.com/api/meetings/data?userId=${userId}`);
         
         if (response.data && response.data.length === 0) {
             return null;
