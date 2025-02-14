@@ -1,0 +1,1033 @@
+import React, { useEffect, useState,useRef } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import AgoraRTC from "agora-rtc-sdk-ng";
+import './VideoCall.css';
+const APP_ID = 'd59df11bf39f4acb8d49ab9e6ab2cd76'; // Replace with your Agora App ID
+const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+const fetchUserDetails = async (userId) => {
+  console.log("Fetching user details for UID:", userId); // Debugging step
+  if (!userId) return `User ${userId}`; 
+  // Avoid fetching if userId is undefined
+
+  try {
+    const response = await fetch(`http://localhost:5000/user/${userId}`);
+    if (!response.ok) throw new Error("User not found");
+    const userData = await response.json();
+    console.log("User data received:", userData); // Debugging step
+    return `${userData.firstName} ${userData.lastName}`;
+
+  } catch (error) {
+    console.error(`Error fetching user ${userId}:`, error);
+    return `User ${userId}`;
+
+  }
+};
+
+
+function VideoCall() {
+  const [userNames, setUserNames] = useState({});
+
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingUrl, setRecordingUrl] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const recordedChunksRef = useRef([]);
+
+  const [searchParams] = useSearchParams();
+  const roomId = searchParams.get("roomId");
+  const [localTracks, setLocalTracks] = useState([]);
+  const [remoteUsers, setRemoteUsers] = useState({});
+  const [expandedUser, setExpandedUser] = useState(null);
+  const [micEnabled, setMicEnabled] = useState(true);
+  const [videoEnabled, setVideoEnabled] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const[myid,setmyId]=useState()
+  const [mainUser, setMainUser] = useState("local");
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const updateUserNames = async () => {
+      const updatedNames = { ...userNames };
+      // Always include local user
+      if (!updatedNames['local']) {
+        updatedNames['local'] = 'You';
+      }
+      
+      // Update remote user names
+      for (let uid in remoteUsers) {
+        if (!updatedNames[uid]) {
+          const name = await fetchUserDetails(uid);
+          updatedNames[uid] = name;
+        }
+      }
+      
+      console.log("Updated userNames:", updatedNames);
+      setUserNames(updatedNames);
+    };
+
+    updateUserNames();
+  }, [remoteUsers]);
+  
+    
+  
+  useEffect(() => {
+    if (!roomId) {
+      alert("Invalid Room ID");
+      return;
+    }
+    const getUidFromURL = () => {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("uid"); // Get 'uid' from the URL
+    };
+    const getChannelNameFromURL = () => {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("roomId"); // Extract 'roomId' from URL
+    };
+
+///
+const setupInitialVideo = async (tracks) => {
+  try {
+    console.log("Setting up initial video...");
+    console.log("Video track status:", tracks[1]?.enabled);
+    
+    // Ensure we have a valid video track
+    if (!tracks[1]) {
+      throw new Error("No video track available");
+    }
+
+    const mainContainer = document.getElementById("main-video-container");
+    if (!mainContainer) {
+      throw new Error("Main container not found");
+    }
+
+    // Clear any existing content
+    mainContainer.innerHTML = '';
+
+    // Create and append the name label
+    const nameLabel = document.createElement('div');
+    nameLabel.className = 'user-name';
+    nameLabel.textContent = 'You (Main)';
+    mainContainer.appendChild(nameLabel);
+
+    // Create video container
+    const videoContainer = document.createElement('div');
+    videoContainer.style.width = '100%';
+    videoContainer.style.height = '100%';
+    mainContainer.appendChild(videoContainer);
+
+    // Play the video track
+    await tracks[1].play(videoContainer);
+    console.log("Local video playing in main container");
+    
+    setIsInitialized(true);
+  } catch (error) {
+    console.error("Error in setupInitialVideo:", error);
+  }
+};
+const initializeLocalVideo = async (tracks) => {
+  try {
+    const container = document.getElementById("main-video-container");
+    if (!container) {
+      console.error("Main video container not found");
+      return;
+    }
+
+    // Clear the container first
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
+    // Add username element
+    const nameElement = document.createElement('div');
+    nameElement.className = 'user-name';
+    nameElement.textContent = "You (Main)";
+    container.appendChild(nameElement);
+
+    // Create video container
+    const videoDiv = document.createElement('div');
+    videoDiv.style.width = '100%';
+    videoDiv.style.height = '100%';
+    container.appendChild(videoDiv);
+
+    // Play the video track
+    if (tracks[1]) {
+      await tracks[1].play(videoDiv);
+      console.log("Local video track playing in main container");
+    } else {
+      console.error("No video track available");
+    }
+  } catch (error) {
+    console.error("Error initializing local video:", error);
+  }
+};
+
+
+const joinMeeting = async () => {
+  try {
+    const uid = getUidFromURL();
+    const channelName = getChannelNameFromURL();
+
+    if (!uid) {
+      console.error("Error: UID not found in URL");
+      return;
+    }
+
+    if (!roomId) {
+      console.error("Invalid Room ID");
+      alert("Invalid Room ID.");
+      return;
+    }
+
+    // Fetch Agora token
+    const response = await fetch(`http://localhost:5000/token?channel=${channelName}&uid=${uid}`);
+    const tokenData = await response.json();
+    if (!tokenData.token) throw new Error("Token generation failed");
+
+    // Join the Agora channel
+    await client.join(APP_ID, tokenData.channel, tokenData.token, tokenData.uid);
+    console.log("✅ Successfully joined the channel");
+
+    // 🎥 Create local video and audio tracks
+    const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks({
+      video: { encoderConfig: 'high_quality' },
+      audio: { echoCancellation: true, noiseSuppression: true }
+    });
+
+    if (!videoTrack) {
+      console.error("❌ Video track creation failed");
+      return;
+    }
+
+    // ✅ Store and play local video
+    setLocalTracks([audioTrack, videoTrack]);
+    videoTrack.play("local-player");
+
+    // ✅ Publish both audio and video tracks
+    await client.publish([audioTrack, videoTrack]);
+    console.log("✅ Local video and audio published successfully");
+
+    // 🟢 Subscribe to existing users in the channel
+    client.remoteUsers.forEach(async (user) => {
+      console.log(`🔄 Subscribing to existing user: ${user.uid}`);
+      await subscribeToUser(user, "video");
+      await subscribeToUser(user, "audio");
+    });
+
+    // 🟢 Listen for new users joining the call
+    client.on("user-published", async (user, mediaType) => {
+      if (mediaType === "video" || mediaType === "audio") {
+        await subscribeToUser(user, mediaType);
+      }
+    });
+
+    // 🔴 Handle users leaving
+    client.on("user-left", (user) => {
+      setRemoteUsers((prev) => {
+        const updated = { ...prev };
+        delete updated[user.uid];
+        return updated;
+      });
+    });
+
+    // 🔴 Handle users unpublishing tracks
+    client.on("user-unpublished", (user) => {
+      setRemoteUsers((prev) => {
+        const updated = { ...prev };
+        delete updated[user.uid];
+        return updated;
+      });
+    });
+
+    // 🔵 Track user updates
+    client.on("user-info-updated", (uid, msg) => {
+      console.log(`🔄 User ${uid} updated:`, msg);
+      setRemoteUsers((prev) => {
+        const updated = { ...prev };
+        updated[uid] = { ...updated[uid], ...msg };
+        return updated;
+      });
+    });
+
+  } catch (error) {
+    console.error("❌ Failed to join meeting:", error);
+  }
+};
+
+    
+
+    joinMeeting();
+
+    return () => {
+      client.leave();
+      localTracks.forEach((track) => track.close());
+    };
+  }, [roomId]);
+
+  
+  useEffect(() => {
+    Object.keys(remoteUsers).forEach((uid) => {
+      const user = remoteUsers[uid];
+      if (user.videoTrack) {
+        user.videoTrack.play(`user-${uid}`);
+      }
+    });
+  }, [remoteUsers]);
+  
+  const subscribeToUser = async (user, mediaType) => {
+    if (!user || (mediaType !== "video" && mediaType !== "audio")) {
+      console.error("Invalid media type:", mediaType);
+      return;
+    }
+  
+    try {
+      await client.subscribe(user, mediaType);
+  
+      if (mediaType === "video" && user.videoTrack) {
+        user.videoTrack.play(`user-${user.uid}`);
+      }
+  
+      if (mediaType === "audio" && user.audioTrack) {
+        user.audioTrack.play();
+      }
+      const userName = await fetchUserDetails(user.uid);
+      setUserNames((prev) => {
+        
+        console.log("Updating userNames state:", { ...prev, [user.uid]: userName });
+
+        return { ...prev, [user.uid]: userName };
+      });
+      setRemoteUsers((prev) => ({ ...prev, [user.uid]: user }));
+    } catch (error) {
+      console.error("Subscription failed:", error);
+    }
+  };
+  
+  
+
+  // const toggleMic = async () => {
+  //   if (localTracks[0]) {
+  //     await localTracks[0].setEnabled(!micEnabled);
+  //     setMicEnabled(!micEnabled);
+  //   }
+  // };
+  const toggleMic = async () => {
+    if (localTracks[0]) {
+      await localTracks[0].setEnabled(!micEnabled);
+      setMicEnabled(!micEnabled);
+  
+      // 🟢 Notify other users about the change
+      client.publish([localTracks[0]]);
+    }
+  };
+  
+
+  // const toggleVideo = async () => {
+  //   if (localTracks[1]) {
+  //     await localTracks[1].setEnabled(!videoEnabled);
+  //     setVideoEnabled(!videoEnabled);
+  //   }
+  // };
+  const toggleVideo = async () => {
+    if (localTracks[1]) {
+      await localTracks[1].setEnabled(!videoEnabled);
+      setVideoEnabled(!videoEnabled);
+  
+      // 🟢 Notify other users about the change
+      client.publish([localTracks[1]]);
+    }
+  };
+
+  const leaveMeeting = async () => {
+    await client.leave();
+    localTracks.forEach((track) => track.close());
+    navigate("/");
+  };
+ 
+
+  const switchMainUser = async (uid) => {
+    setMainUser((prevMainUser) => {
+      const newMainUser = uid === prevMainUser ? "local" : uid;
+      console.log(`Switching main user from ${prevMainUser} to ${newMainUser}`);
+  
+      // Helper function to properly handle video playback
+      const playVideoTrack = (track, containerId, userName) => {
+        if (!track) {
+          console.error(`No video track found for ${userName} in ${containerId}`);
+          return;
+        }
+  
+        const container = document.getElementById(containerId);
+        if (!container) {
+          console.error(`Container not found: ${containerId}`);
+          return;
+        }
+  
+        // Clear existing content
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+  
+        // Add username element
+        const nameElement = document.createElement('div');
+        nameElement.className = 'user-name';
+        nameElement.textContent = userName;
+        container.appendChild(nameElement);
+  
+        try {
+          // Stop the track before playing it again
+          track.stop();
+          // Play the track in the new container
+          setTimeout(() => {
+            track.play(containerId);
+            console.log(`Successfully playing video for ${userName} in ${containerId}`);
+          }, 50);
+        } catch (error) {
+          console.error(`Error playing video for ${userName} in ${containerId}:`, error);
+        }
+      };
+  
+      // Schedule updates with proper timing
+      setTimeout(() => {
+        // First, handle the main display
+        const mainContainerId = "main-video-container";
+        if (newMainUser === "local" && localTracks[1]) {
+          playVideoTrack(
+            localTracks[1],
+            mainContainerId,
+            "You (Main)"
+          );
+        } else if (remoteUsers[newMainUser]?.videoTrack) {
+          playVideoTrack(
+            remoteUsers[newMainUser].videoTrack,
+            mainContainerId,
+          `${userNames[newMainUser] || `User ${newMainUser}`} (Main)`
+
+
+
+          );
+        }
+  
+        // Then handle all other videos
+        ["local", ...Object.keys(remoteUsers)]
+          .filter(userId => userId !== newMainUser)
+          .forEach(userId => {
+            const containerId = `user-${userId}`;
+            if (userId === "local" && localTracks[1]) {
+              playVideoTrack(
+                localTracks[1],
+                containerId,
+                "You"
+              );
+            } else if (userId !== "local" && remoteUsers[userId]?.videoTrack) {
+              playVideoTrack(
+                remoteUsers[userId].videoTrack,
+                containerId,
+               `${userNames[newMainUser] || `User ${newMainUser}`} (Main)`
+
+              );
+            }
+          });
+      }, 100);
+  
+      return newMainUser;
+    });
+  };
+  // const switchMainUser = async (uid) => {
+  //   setMainUser((prevMainUser) => {
+  //     const newMainUser = uid === prevMainUser ? "local" : uid;
+  //     console.log(Switching main user from ${prevMainUser} to ${newMainUser});
+  
+  //     const playVideoTrack = (track, containerId, userName, isLocal) => {
+  //       if (!track) {
+  //         console.error(No video track found for ${userName} in ${containerId});
+  //         return;
+  //       }
+  
+  //       const container = document.getElementById(containerId);
+  //       if (!container) {
+  //         console.error(Container not found: ${containerId});
+  //         return;
+  //       }
+  
+  //       // Clear existing content
+  //       while (container.firstChild) {
+  //         container.removeChild(container.firstChild);
+  //       }
+  
+  //       // Add username element
+  //       const nameElement = document.createElement('div');
+  //       nameElement.className = 'user-name';
+  //       nameElement.textContent = userName;
+  //       container.appendChild(nameElement);
+  
+  //       try {
+  //         // For local tracks, we need to handle them differently
+  //         if (isLocal) {
+  //           console.log(Playing local track in ${containerId});
+  //           // Create a new div for the video
+  //           const videoDiv = document.createElement('div');
+  //           videoDiv.style.width = '100%';
+  //           videoDiv.style.height = '100%';
+  //           container.appendChild(videoDiv);
+  //           track.play(videoDiv);
+  //         } else {
+  //           // For remote tracks, play directly in container
+  //           track.play(containerId);
+  //         }
+  //         console.log(Successfully playing video for ${userName} in ${containerId});
+  //       } catch (error) {
+  //         console.error(Error playing video for ${userName} in ${containerId}:, error);
+  //       }
+  //     };
+  
+  //     // Schedule updates with proper timing
+  //     setTimeout(() => {
+  //       // Handle main container first
+  //       if (newMainUser === "local" && localTracks[1]) {
+  //         console.log("Playing local video in main container");
+  //         playVideoTrack(
+  //           localTracks[1],
+  //           "main-video-container",
+  //           "You (Main)",
+  //           true // isLocal flag
+  //         );
+  //       } else if (remoteUsers[newMainUser]?.videoTrack) {
+  //         console.log("Playing remote video in main container");
+  //         playVideoTrack(
+  //           remoteUsers[newMainUser].videoTrack,
+  //           "main-video-container",
+  //           ${userNames[newMainUser] } (Main)
+  //         );
+  //       }
+  
+  //       // Handle all other videos
+  //       ["local", ...Object.keys(remoteUsers)]
+  //         .filter(userId => userId !== newMainUser)
+  //         .forEach(userId => {
+  //           const containerId = user-${userId};
+  //           if (userId === "local" && localTracks[1]) {
+  //             console.log("Playing local video in small container");
+  //             playVideoTrack(
+  //               localTracks[1],
+  //               containerId,
+  //               "You",
+  //               true // isLocal flag
+  //             );
+  //           } else if (userId !== "local" && remoteUsers[userId]?.videoTrack) {
+  //             console.log("Playing remote video in small container");
+  //             playVideoTrack(
+  //               remoteUsers[userId].videoTrack ,
+  //               containerId,
+  //               userNames[userId] || User ${userId},
+
+  //             );
+  //           }
+  //         });
+  //     }, 100);
+  
+  //     return newMainUser;
+  //   });
+  // };
+  
+  
+  const startScreenShare = async () => {
+    try {
+      if (localTracks[1]) { 
+        await client.unpublish(localTracks[1]); 
+        localTracks[1].stop();
+      }
+  
+      const screenTrack = await AgoraRTC.createScreenVideoTrack();
+  
+      await client.publish(screenTrack);
+  
+      setLocalTracks([localTracks[0], screenTrack]); 
+      setIsScreenSharing(true);
+      screenTrack.play("local-player");
+      screenTrack.on("track-ended", stopScreenShare);
+    } catch (error) {
+      console.error("Error starting screen share:", error);
+    }
+  };
+  
+  const stopScreenShare = async () => {
+    try {
+      if (localTracks[1]) {
+        await client.unpublish(localTracks[1]);
+        localTracks[1].close();
+      }
+  
+      const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+  
+      await client.publish([audioTrack, videoTrack]);
+      setLocalTracks([audioTrack, videoTrack]);
+      videoTrack.play("local-player");
+      setIsScreenSharing(false);
+      console.log("Screen sharing stopped, camera restored.");
+    } catch (error) {
+      console.error("Error stopping screen share:", error);
+    }
+  };
+  useEffect(() => {
+    console.log("Updated userNames:", userNames);
+  }, [userNames]);
+  
+const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { mediaSource: "screen" },
+        audio: true,
+      });
+
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      recordedChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: "video/webm" });
+        const url = URL.createObjectURL(blob);
+        setRecordingUrl(url);
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Error starting screen recording:", error);
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+    }
+  };
+
+  return (
+    <div className="video-call-container">
+      <h2> Video Call</h2>
+
+      <div className="video-grid">
+        {/* Local Video - Always Larger */}
+        <div className="video-item large">
+        <div id="main-video-container" className="video-container">
+       
+        <div className="user-name">
+              {mainUser === "local" ? "You (Main)" : `${userNames[mainUser]}` (Main)}
+            </div>
+        </div>
+</div>
+        {/* Remote Users */}
+        
+        <div className="remote-users two-columns">
+        {["local", ...Object.keys(remoteUsers)]
+            .filter(uid => uid !== mainUser)
+            .map((uid) => (
+              <div 
+                key={uid} 
+                className="video-item small"
+                onClick={() => switchMainUser(uid)}
+              >
+                <div 
+                  id={uid === "local" ? "local-player" : `user-${uid}`}
+                  className="video-container"
+                >
+                  
+                  <div className="user-name">
+                    {uid === "local" ? "You" : userNames[uid]}
+                  </div>
+                </div>
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="controls">
+        <button onClick={toggleMic} className={micEnabled ? "btn green" : "btn red"}>
+          {micEnabled ? "Mute Mic" : "Unmute Mic"}
+        </button>
+
+        <button onClick={toggleVideo} className={videoEnabled ? "btn green" : "btn red"}>
+          {videoEnabled ? "Turn Video Off" : "Turn Video On"}
+        </button>
+
+        <button onClick={leaveMeeting} className="btn red">
+          End Call
+        </button>
+        <button
+          onClick={isScreenSharing ? stopScreenShare : startScreenShare}
+          style={{
+            margin: "10px",
+            padding: "10px",
+            fontSize: "16px",
+            background: isScreenSharing ? "gray" : "blue",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer"
+          }}>
+          {isScreenSharing ? "Stop Screen Share" : "Share Screen"}
+        </button>
+        <button
+        onClick={isRecording ? stopRecording : startRecording}
+        style={{
+          padding: "10px 20px",
+          fontSize: "16px",
+          cursor: "pointer",
+          backgroundColor: isRecording ? "red" : "green",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          marginBottom: "10px",
+        }}
+      >
+        {isRecording ? "Stop Recording" : "Start Recording"}
+      </button>
+
+      {recordingUrl && (
+        <div>
+          <h3>Recorded Video:</h3>
+          <video controls src={recordingUrl} width="600"></video>
+          <br />
+          <a href={recordingUrl} download="screen-recording.webm">
+            <button
+              style={{
+                marginTop: "10px",
+                padding: "10px",
+                backgroundColor: "blue",
+                color: "white",
+                border: "none",
+                borderRadius: "5px",
+                cursor: "pointer",
+              }}
+            >
+              Download Recording
+            </button>
+          </a>
+        </div>
+      )}
+      </div>
+
+    
+    </div>
+  );
+}
+
+export default VideoCall; 
+
+/////////////////////////////////////////////////////////////////////////
+
+General container styling
+/* Main Video Call Container */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+
+}
+.video-call-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  background: #121212;
+  color: white;
+  padding: 10px;
+  overflow: hidden;
+}
+
+/* Video Grid - Auto adjusts for more users */
+.video-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  align-content: flex-start;
+  width: 100%;
+  height: calc(100vh - 80px); /* Keeps space for controls */
+  overflow-y: auto; /* Allows scrolling if needed */
+  padding: 10px;
+}
+/* Video Box */
+.video-item {
+  background: #222;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #333;
+  transition: transform 0.3s ease-in-out;
+  aspect-ratio: 16 / 9; /* Maintain proper proportions */
+  width: calc(33% - 10px); /* Adjusts dynamically */
+  max-width: 400px;
+  min-width: 200px;
+}
+
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.local-video {
+  width: 250px;
+  height: 180px;
+  background-color: black;
+  border: 2px solid white;
+  position: fixed; /* Keep the local video fixed */
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+}
+.user-name {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1;
+  font-size: 14px;
+}
+.remote-videos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  gap: 10px; /* Space between videos */
+  overflow-y: auto; /* Enable scrolling if needed */
+  max-height: 80vh; /* Prevent excessive height */
+  justify-content: center;
+  align-content: start;
+  margin-top: 340px; /* Leave space for the fixed local video */
+}
+
+
+.remote-video {
+  width: 200px;
+  height: 150px;
+  background-color: black;
+  margin: 5px;
+  cursor: pointer;
+  border: 2px solid white;
+}
+/* When more users join, adjust layout */
+@media (max-width: 1200px) {
+  .video-item {
+    width: calc(50% - 10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .video-item {
+    width: 100%; /* Full width for small screens */
+  }
+}
+
+/* Fixed Controls */
+.controls {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 30px;
+  z-index: 1000;
+}
+
+/* Button Styling */
+.btn {
+  border: none;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: 0.3s;
+}
+.btn.green {
+  background: #4caf50;
+  color: white;
+}
+
+.btn.red {
+  background: #f44336;
+  color: white;
+}
+
+.btn.screen-share {
+  background: blue;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.8;
+}
+
+
+/* Title styling */
+.video-call-container h2 {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Video Grid Layout */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Equal-sized videos */
+  gap: 10px;
+  width: 95%;
+  height: 75%;
+  padding: 10px;
+  justify-content: center;
+}
+
+/* Video Item */
+.video-item {
+  background: #222;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #333;
+  transition: transform 0.3s ease-in-out;
+  aspect-ratio: 16 / 9; /* Maintain proper video proportions */
+  width: 100%;
+  height: auto;
+}
+
+.video-item.large {
+  width: 100%;
+  height: 60vh;
+  margin-bottom: 20px;
+}
+
+.video-item.small {
+  width: 200px;
+  height: 150px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.remote-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  overflow-x: hidden;
+}
+.remote-users.two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two columns */
+  gap: 10px;
+  justify-content: center;
+  align-content: start;
+  overflow-y: auto; /* Scroll if too many users */
+  max-height: 80vh; /* Prevent excessive height */
+
+}
+
+/* Ensure Remote Users Look the Same */
+.remote-users .video-item {
+  width: 100%;
+  height: auto;
+}
+
+/* Adjust size when Screen Sharing */
+.screen-sharing .video-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Large screen share display */
+.screen-sharing .video-item.large {
+  width: 80%;
+  height: 60vh;
+}
+
+/* Remote users in smaller view during screen share */
+.screen-sharing .video-item.small {
+  width: 40%;
+  height: 25vh;
+}
+
+/* Floating Controls */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  position: fixed;
+  bottom: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 30px;
+}
+
+/* Button Styling */
+.btn {
+  border: none;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: 0.3s;
+}
+
+/* Green for Active State */
+.btn.green {
+  background: #4caf50;
+  color: white;
+}
+
+/* Red for Off State */
+.btn.red {
+  background: #f44336;
+  color: white;
+}
+
+/* Hover Effects */
+.btn:hover {
+  opacity: 0.8;
+}
+
+/* Screen Share Button */
+.btn.screen-share {
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+  background: blue;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.btn.screen-share:hover {
+  background: darkblue;
+}
+
+.btn.screen-share.active {
+  background: gray;
+}
+
+

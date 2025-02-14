@@ -5,6 +5,7 @@ import HostMeetingScreenDetails from "./HostMeetingScreenDetails";
 import './AllMeetings.css';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Sidebar from "./Sidebar";
 
 const AllMeetings = () => {
   const [meetings, setMeetings] = useState([]);
@@ -62,6 +63,7 @@ const AllMeetings = () => {
 
   return (
     <div className="meeting-container">
+      <Sidebar />
       <center><h2>All Meetings Created by Host</h2></center>
       {error && <p className="error-text">{error}</p>}
 

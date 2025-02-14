@@ -27,13 +27,13 @@ h2 {
 input,
 textarea,
 select {
-  width: 100%;
+  width: 96%;
   padding: 10px;
   font-size: 15px;
   border: 1px solid #ccc;
   border-radius: 6px;
   background: #fff;
-  transition: border-color 0.3s ease;
+
 }
 
 input:focus,
@@ -51,7 +51,7 @@ select:focus {
 /* Date & Time Picker */
 .date-time-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .picker {

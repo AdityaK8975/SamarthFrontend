@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import './CreateMeeting.css'
+import Sidebar from "./Sidebar";
 const CreateMeeting = () => {
   const [username, setUsername] = useState("");
   const [meetingTitle, setMeetingTitle] = useState("");
@@ -98,7 +99,7 @@ const CreateMeeting = () => {
      
       setError(null);
 
-      const generatedLink = meetingType === "Online"? `https://samarthmeet.netlify.app/video-call?roomId=${newMeetingId}`
+      const generatedLink = meetingType === "Online"? `http://localhost:5173/video-call?roomId=${newMeetingId}`
       : "";
 
       const meetingData = {
@@ -168,6 +169,7 @@ const CreateMeeting = () => {
   };
   return (
     <div className="container">
+      <Sidebar />
       <h2>{isCreated ? "Meeting Created" : "Create a Meeting"}</h2>
 
       {!isCreated ? (
@@ -324,7 +326,7 @@ const CreateMeeting = () => {
           </p>
           <p>
           <strong>Meeting Link:</strong>{" "}
-            <span className="meeting-id">`https://samarthmeet.netlify.app/video-call?roomId=${meetingId}`</span>
+            <span className="meeting-id">`http://localhost:5173/video-call?roomId=${meetingId}`</span>
           </p>
         </div>
       )}

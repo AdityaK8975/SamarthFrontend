@@ -15,6 +15,7 @@ const HostMeetingScreenDetails = ({ meeting }) => {
   );
 
   return (
+    <>
     <div className="container">
       {/* Meeting Header */}
       <div className="meeting-header">
@@ -88,6 +89,7 @@ const HostMeetingScreenDetails = ({ meeting }) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 

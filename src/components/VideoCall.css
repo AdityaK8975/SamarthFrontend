@@ -1,38 +1,306 @@
-/* Add this CSS to your stylesheet */
-#video-container {
+General container styling
+/* Main Video Call Container */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+
+}
+.video-call-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  background: #121212;
+  color: white;
+  padding: 10px;
+  overflow: hidden;
+}
+
+/* Video Grid - Auto adjusts for more users */
+.video-grid {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  align-items: center;
   gap: 10px;
-  padding: 20px;
-  background-color: #f0f0f0;
+  justify-content: center;
+  align-content: flex-start;
+  width: 100%;
+  height: calc(100vh - 80px); /* Keeps space for controls */
+  overflow-y: auto; /* Allows scrolling if needed */
+  padding: 10px;
 }
-
-#local-player,
-#remote-container > div {
-  width: 400px;
-  height: 250px;
-  background-color: black;
-  margin: 10px;
-  border-radius: 10px;
-  overflow: hidden;
+/* Video Box */
+.video-item {
+  background: #222;
+  border-radius: 8px;
   position: relative;
+  overflow: hidden;
+  border: 2px solid #333;
+  transition: transform 0.3s ease-in-out;
+  aspect-ratio: 16 / 9; /* Maintain proper proportions */
+  width: calc(33% - 10px); /* Adjusts dynamically */
+  max-width: 400px;
+  min-width: 200px;
 }
 
-#local-player::before,
-#remote-container > div::before {
-  content: "Local Player";
+.video-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.local-video {
+  width: 250px;
+  height: 180px;
+  background-color: black;
+  border: 2px solid white;
+  position: fixed; /* Keep the local video fixed */
+  top: 20px;
+  left: 20px;
+  z-index: 100;
+}
+.user-name {
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   left: 10px;
+  background-color: rgba(0, 0, 0, 0.6);
   color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  z-index: 1;
   font-size: 14px;
-  background-color: rgba(0, 0, 0, 0.5);
-  padding: 2px 5px;
-  border-radius: 3px;
+}
+.remote-videos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2 columns */
+  gap: 10px; /* Space between videos */
+  overflow-y: auto; /* Enable scrolling if needed */
+  max-height: 80vh; /* Prevent excessive height */
+  justify-content: center;
+  align-content: start;
+  margin-top: 340px; /* Leave space for the fixed local video */
 }
 
-#remote-container > div::before {
-  content: "Remote Player";
+
+.remote-video {
+  width: 200px;
+  height: 150px;
+  background-color: black;
+  margin: 5px;
+  cursor: pointer;
+  border: 2px solid white;
 }
+/* When more users join, adjust layout */
+@media (max-width: 1200px) {
+  .video-item {
+    width: calc(50% - 10px);
+  }
+}
+
+@media (max-width: 768px) {
+  .video-item {
+    width: 100%; /* Full width for small screens */
+  }
+}
+
+/* Fixed Controls */
+.controls {
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 30px;
+  z-index: 1000;
+}
+
+/* Button Styling */
+.btn {
+  border: none;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: 0.3s;
+}
+.btn.green {
+  background: #4caf50;
+  color: white;
+}
+
+.btn.red {
+  background: #f44336;
+  color: white;
+}
+
+.btn.screen-share {
+  background: blue;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.8;
+}
+
+
+/* Title styling */
+.video-call-container h2 {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+/* Video Grid Layout */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); /* Equal-sized videos */
+  gap: 10px;
+  width: 95%;
+  height: 75%;
+  padding: 10px;
+  justify-content: center;
+}
+
+/* Video Item */
+.video-item {
+  background: #222;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid #333;
+  transition: transform 0.3s ease-in-out;
+  aspect-ratio: 16 / 9; /* Maintain proper video proportions */
+  width: 100%;
+  height: auto;
+}
+
+.video-item.large {
+  width: 100%;
+  height: 60vh;
+  margin-bottom: 20px;
+}
+
+.video-item.small {
+  width: 200px;
+  height: 150px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.remote-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  overflow-x: hidden;
+}
+.remote-users.two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two columns */
+  gap: 10px;
+  justify-content: center;
+  align-content: start;
+  overflow-y: auto; /* Scroll if too many users */
+  max-height: 80vh; /* Prevent excessive height */
+
+}
+
+/* Ensure Remote Users Look the Same */
+.remote-users .video-item {
+  width: 100%;
+  height: auto;
+}
+
+/* Adjust size when Screen Sharing */
+.screen-sharing .video-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Large screen share display */
+.screen-sharing .video-item.large {
+  width: 80%;
+  height: 60vh;
+}
+
+/* Remote users in smaller view during screen share */
+.screen-sharing .video-item.small {
+  width: 40%;
+  height: 25vh;
+}
+
+/* Floating Controls */
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  position: fixed;
+  bottom: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 10px 20px;
+  border-radius: 30px;
+}
+
+/* Button Styling */
+.btn {
+  border: none;
+  padding: 12px 18px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 50px;
+  transition: 0.3s;
+}
+
+/* Green for Active State */
+.btn.green {
+  background: #4caf50;
+  color: white;
+}
+
+/* Red for Off State */
+.btn.red {
+  background: #f44336;
+  color: white;
+}
+
+/* Hover Effects */
+.btn:hover {
+  opacity: 0.8;
+}
+
+/* Screen Share Button */
+.btn.screen-share {
+  margin: 10px;
+  padding: 10px;
+  font-size: 16px;
+  background: blue;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.btn.screen-share:hover {
+  background: darkblue;
+}
+
+.btn.screen-share.active {
+  background: gray;
+}
+
+

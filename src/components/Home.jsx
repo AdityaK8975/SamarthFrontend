@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import './Home.css'; // External CSS file for the styles
+import Sidebar from "./Sidebar";
 
 function Home() {
   const [meetingId, setMeetingId] = useState("");
@@ -22,9 +23,10 @@ function Home() {
 
   return (
     <div className="home-container">
+      <Sidebar />
       <div className="header">
         <img src="../assets/logo.png" alt="Logo" className="logo" />
-        <h2> Video Conferencing App</h2>
+     
       </div>
       <div className="meeting-actions">
         

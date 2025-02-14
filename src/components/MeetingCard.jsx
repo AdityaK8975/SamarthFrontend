@@ -107,7 +107,7 @@ const MeetingCard = ({ meeting, isHost, userId }) => {
     meeting.meetingType === "Offline" ? (
       <p className="accepted-text">✅ You have accepted this offline meeting.</p>
     ) : (
-      <button className="btn btn-join" onClick={() => navigate(`/video-call?roomId=${meeting.meetingId}`)}>Join Meeting</button>
+      <button className="btn btn-join" onClick={() => navigate(`/video-call?roomId=${meeting.meetingId}&uid=${userId}`)}>Join Meeting</button>
     )
   ) : (
     <div>

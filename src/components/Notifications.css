@@ -1,0 +1,88 @@
+.notifications-container {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.loader {
+    width: 50px;
+    height: 50px;
+    margin: 20px auto;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.error-text {
+    color: red;
+    text-align: center;
+    font-size: 16px;
+}
+
+.notification-list {
+    list-style: none;
+    padding: 0;
+}
+
+.notification-card {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s;
+}
+
+.unread {
+    background-color: #e0e0e0;
+}
+
+.read {
+    background-color: #ffffff;
+}
+
+.notification-message {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.notification-details,
+.meeting-id {
+    font-size: 14px;
+    color: #555;
+}
+
+.notification-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.time-ago {
+    font-size: 12px;
+    color: #777;
+}
+
+.ok-button {
+    background-color: #007bff;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.ok-button:hover {
+    background-color: #0056b3;
+}
