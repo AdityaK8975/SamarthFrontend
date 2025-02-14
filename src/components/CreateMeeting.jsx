@@ -99,7 +99,7 @@ const CreateMeeting = () => {
      
       setError(null);
 
-      const generatedLink = meetingType === "Online"? `http://localhost:5173/video-call?roomId=${newMeetingId}`
+      const generatedLink = meetingType === "Online"? `http://localhost:5173/video-call?roomId=${newMeetingId}&uid=1001`
       : "";
 
       const meetingData = {
@@ -165,7 +165,7 @@ const CreateMeeting = () => {
       toast.error('Please generate a Meeting ID first');
       return;
     }
-    navigate(`/video-call?roomId=${meetingId}`);
+    navigate(`/video-call?roomId=${meetingId}&uid=1001`);
   };
   return (
     <div className="container">
@@ -327,7 +327,7 @@ const CreateMeeting = () => {
           <p>
   <strong>Meeting Link:</strong>{" "}
   <span className="meeting-id">
-    `http://localhost:5173/video-call?roomId=${meetingId}`
+    `http://localhost:5173/video-call?roomId=${meetingId}&uid=1001`
   </span>
 </p>
 
